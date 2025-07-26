@@ -748,7 +748,7 @@
                     // 2. 使用翻譯後的文本生成圖片
                     loadingText.textContent = '正在生成插圖...';
                     const prompt = generateImagePrompt(englishPara);
-                    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?model=flux&enhance=false&private=true&nologo=true&seed=${baseSeed + i}`; // 使用 i 確保初始圖片不同
+                    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?token=Jeq-UCxbpvrqUEzN&model=flux&enhance=false&private=true&nologo=true&seed=${baseSeed + i}`; // 使用 i 確保初始圖片不同
                     
                     const img = new Image();
                     await new Promise((resolve) => {
@@ -815,7 +815,7 @@
                             // 3. 用新的隨機 seed 生成新圖片
                             const prompt = generateImagePrompt(englishPara);
                             const newSeed = Math.floor(Math.random() * 10000000); // 產生新的隨機種子
-                            const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?model=flux&enhance=false&private=true&nologo=true&seed=${newSeed}`;
+                            const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?token=Jeq-UCxbpvrqUEzN&model=flux&enhance=false&private=true&nologo=true&seed=${newSeed}`;
 
                             // 4. 加載並顯示新圖片
                             const img = new Image();
