@@ -617,6 +617,11 @@
                 } catch (error) {
                     showNotification('生成過程中發生錯誤，請重試', true);
                     console.error('生成錯誤:', error);
+                    slidesContainer.innerHTML = `
+                    <div class="placeholder">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>抱歉，生成時發生未知錯誤。請檢查網路連線或稍後再試。</p>
+                    </div>`;
                 } finally {
                     generateBtn.disabled = false;
                     resetBtn.disabled = false;
@@ -646,29 +651,60 @@
                 
                 return paragraphs;
             }
-            
-            // 生成圖片提示詞
-            function generateImagePrompt(paragraph) {
-                // 加強風格描述以確保一致性
-                return `minimalist black and white japanese anime style, clean line art, bold lines, black on white background, simple, no shading, no gradients, no color, no text：${paragraph}`;
+
+            /**
+             * [修改] 翻譯文字為英文 (使用 MyMemory API)
+             * @param {string} textToTranslate - 要翻譯的中文文本
+             * @returns {Promise<string|null>} - 翻譯後的英文文本，或在失敗時返回 null
+             */
+            async function translateToEnglish(textToTranslate) {
+                // 使用 MyMemory API，langpair 指定從繁體中文(zh-TW)到英文(en)
+                const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=zh-TW|en`;
+
+                try {
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) {
+                        throw new Error(`Translation API failed with status ${response.status}`);
+                    }
+                    const data = await response.json();
+                    
+                    // MyMemory API 在某些情況下即使出錯也會返回200，所以要檢查回傳的數據
+                    if (data.responseStatus !== 200) {
+                        throw new Error(`MyMemory API error: ${data.responseDetails}`);
+                    }
+
+                    // 檢查並返回翻譯後的文本
+                    if (data.responseData && data.responseData.translatedText) {
+                        return data.responseData.translatedText;
+                    } else {
+                        throw new Error('Translated text not found in API response.');
+                    }
+                } catch (error) {
+                    console.error('Translation error:', error);
+                    return null; // 在任何錯誤情況下都返回 null
+                }
             }
             
-            // 順序生成幻燈片
+            // 生成圖片提示詞
+            function generateImagePrompt(englishParagraph) {
+                // 加強風格描述以確保一致性，現在使用英文段落
+                return `minimalist black and white japanese Anime style, clean line art, bold lines, black on white background, simple, no shading, no gradients, no color, no text：${englishParagraph}`;
+            }
+            
+            /**
+             * 順序生成幻燈片
+             * @param {string[]} paragraphs - 中文段落陣列
+             */
             async function generateSlidesSequentially(paragraphs) {
                 slidesContainer.innerHTML = '';
-                
-                // 為本次生成任務創建一個基礎SEED
                 const baseSeed = Math.floor(Math.random() * 1000000);
                 
-                // 為每個段落生成幻燈片
                 for (let i = 0; i < paragraphs.length; i++) {
                     const para = paragraphs[i];
                     
-                    // 更新進度條
                     const progress = Math.floor((i / paragraphs.length) * 100);
                     progressBar.style.width = `${progress}%`;
                     
-                    // 創建臨時幻燈片元素
                     const tempSlide = document.createElement('div');
                     tempSlide.className = 'slide';
                     tempSlide.innerHTML = `
@@ -679,76 +715,80 @@
                         <div class="slide-image">
                             <div class="loading">
                                 <div class="spinner"></div>
-                                <p>正在生成插圖...</p>
+                                <p>正在翻譯文字...</p>
                             </div>
                         </div>
                         <div class="slide-text">
                             <p>${para}</p>
                         </div>
                     `;
-                    
                     slidesContainer.appendChild(tempSlide);
                     
-                    // 為每段文字生成圖片的提示詞
-                    const prompt = generateImagePrompt(para);
+                    // 滾動到新幻燈片的位置
+                    slidesContainer.scrollTo({
+                        left: tempSlide.offsetLeft - slidesContainer.offsetLeft,
+                        behavior: 'smooth'
+                    });
                     
-                    // 使用Pollinations.ai API生成圖片
+                    const slideImageContainer = tempSlide.querySelector('.slide-image');
+                    const loadingText = slideImageContainer.querySelector('.loading p');
+
+                    // 1. 翻譯段落
+                    const englishPara = await translateToEnglish(para);
+                    
+                    if (!englishPara) {
+                        slideImageContainer.innerHTML = '<p style="color: red; padding: 10px; text-align: center;">翻譯失敗，無法生成圖片。</p>';
+                        await new Promise(resolve => setTimeout(resolve, 1500)); // 等待一下讓用戶看到訊息
+                        continue; // 繼續下一個循環
+                    }
+                    
+                    // 2. 使用翻譯後的文本生成圖片
+                    loadingText.textContent = '正在生成插圖...';
+                    const prompt = generateImagePrompt(englishPara);
                     const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?model=flux&enhance=false&private=true&nologo=true&seed=${baseSeed}`;
                     
-                    // 創建圖片元素
                     const img = new Image();
-                    
-                    // 等待圖片加載完成
                     await new Promise((resolve) => {
-                        img.onload = function() {
-                            const slideImage = tempSlide.querySelector('.slide-image');
-                            slideImage.innerHTML = '';
-                            slideImage.appendChild(img);
-                            setTimeout(resolve, 1000);
+                        img.onload = () => {
+                            slideImageContainer.innerHTML = '';
+                            slideImageContainer.appendChild(img);
+                            resolve();
                         };
-                        
-                        img.onerror = function() {
-                            const slideImage = tempSlide.querySelector('.slide-image');
-                            slideImage.innerHTML = '<p>圖片生成失敗，請重試</p>';
-                            setTimeout(resolve, 1000);
+                        img.onerror = () => {
+                            slideImageContainer.innerHTML = '<p style="color: red; padding: 10px; text-align: center;">圖片生成失敗，請重試。</p>';
+                            resolve(); // 即使失敗也要繼續
                         };
-                        
                         img.src = imageUrl;
                         img.alt = `第${i+1}張幻燈片插圖`;
                     });
                     
-                    // 滾動到最新生成的幻燈片
-                    slidesContainer.scrollTo({
-                        left: slidesContainer.scrollWidth,
-                        behavior: 'smooth'
-                    });
-                    
-                    // 添加延遲以避免API限制
+                    // 為避免API請求過快，增加延遲
                     await new Promise(resolve => setTimeout(resolve, 1500));
                 }
                 
-                // 完成進度條
                 progressBar.style.width = '100%';
                 
-                // 啟用導航按鈕
-                prevSlideBtn.disabled = false;
-                nextSlideBtn.disabled = false;
+                prevSlideBtn.disabled = paragraphs.length === 0;
+                nextSlideBtn.disabled = paragraphs.length === 0;
                 
-                // 滾動到第一張幻燈片
-                slidesContainer.scrollTo(0, 0);
+                slidesContainer.scrollTo({ left: 0, behavior: 'smooth' });
             }
             
             // 幻燈片導航
             prevSlideBtn.addEventListener('click', function() {
-                slidesContainer.scrollBy({
-                    left: -slidesContainer.offsetWidth * 0.9,
+                const slideWidth = slidesContainer.querySelector('.slide')?.offsetWidth || 0;
+                const scrollAmount = slidesContainer.scrollLeft - (slideWidth + 30); // 30是gap
+                slidesContainer.scrollTo({
+                    left: scrollAmount < 0 ? 0 : scrollAmount,
                     behavior: 'smooth'
                 });
             });
             
             nextSlideBtn.addEventListener('click', function() {
-                slidesContainer.scrollBy({
-                    left: slidesContainer.offsetWidth * 0.9,
+                const slideWidth = slidesContainer.querySelector('.slide')?.offsetWidth || 0;
+                const scrollAmount = slidesContainer.scrollLeft + (slideWidth + 30); // 30是gap
+                slidesContainer.scrollTo({
+                    left: scrollAmount,
                     behavior: 'smooth'
                 });
             });
@@ -759,4 +799,4 @@
         });
     </script>
 </body>
-</html>```
+</html>
