@@ -258,6 +258,8 @@
             justify-content: center;
             border-bottom: 1px solid #e2e8f0;
             position: relative; /* Needed for positioning regeneration UI */
+            text-align: center; /* Center content like error messages */
+            padding: 20px;
         }
         
         .slide-image img {
@@ -265,8 +267,36 @@
             height: 100%;
             object-fit: cover;
             transition: opacity 0.3s;
+            padding: 0; /* Reset padding for the image itself */
         }
         
+        /* 【新增】圖片生成失敗時的重試樣式 */
+        .generation-error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            cursor: pointer;
+            color: #c53030;
+            border: 2px dashed #e53e3e;
+            border-radius: 12px;
+            height: 100%;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        .generation-error:hover {
+            background-color: #fed7d7;
+        }
+        .generation-error i {
+            font-size: 3rem;
+        }
+        .generation-error p {
+            font-weight: 600;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
         .slide-text {
             padding: 20px;
             font-size: 16px;
@@ -592,11 +622,9 @@
                     return;
                 }
                 
-                // 禁用按鈕避免重複點擊
                 generateBtn.disabled = true;
                 resetBtn.disabled = true;
                 
-                // 顯示加載狀態
                 slidesContainer.innerHTML = `
                     <div class="loading">
                         <div class="spinner"></div>
@@ -604,14 +632,11 @@
                     </div>
                 `;
                 
-                // 顯示進度條
                 progressContainer.style.display = 'block';
                 progressBar.style.width = '0%';
                 
-                // 分割文章為段落（每段不超過100字）
                 const paragraphs = splitArticleIntoParagraphs(article);
                 
-                // 生成幻燈片
                 try {
                     await generateSlidesSequentially(paragraphs);
                     showNotification('幻燈片生成完成！');
@@ -629,7 +654,6 @@
                 }
             });
             
-            // 分割文章為段落
             function splitArticleIntoParagraphs(article) {
                 const sentences = article.split(/(?<=[。！？；])/g);
                 const paragraphs = [];
@@ -653,13 +677,7 @@
                 return paragraphs;
             }
 
-            /**
-             * [修改] 翻譯文字為英文 (使用 MyMemory API)
-             * @param {string} textToTranslate - 要翻譯的中文文本
-             * @returns {Promise<string|null>} - 翻譯後的英文文本，或在失敗時返回 null
-             */
             async function translateToEnglish(textToTranslate) {
-                // 使用 MyMemory API，langpair 指定從繁體中文(zh-TW)到英文(en)
                 const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=zh-TW|en`;
 
                 try {
@@ -669,12 +687,10 @@
                     }
                     const data = await response.json();
                     
-                    // MyMemory API 在某些情況下即使出錯也會返回200，所以要檢查回傳的數據
                     if (data.responseStatus !== 200) {
                         throw new Error(`MyMemory API error: ${data.responseDetails}`);
                     }
 
-                    // 檢查並返回翻譯後的文本
                     if (data.responseData && data.responseData.translatedText) {
                         return data.responseData.translatedText;
                     } else {
@@ -682,20 +698,14 @@
                     }
                 } catch (error) {
                     console.error('Translation error:', error);
-                    return null; // 在任何錯誤情況下都返回 null
+                    return null;
                 }
             }
             
-            // 生成圖片提示詞
             function generateImagePrompt(englishParagraph) {
-                // 加強風格描述以確保一致性，現在使用英文段落
                 return `minimalist black and white japanese Anime style, clean line art, bold lines, black on white background, simple, no shading, no gradients, no color, no text：${englishParagraph}`;
             }
             
-            /**
-             * 順序生成幻燈片
-             * @param {string[]} paragraphs - 中文段落陣列
-             */
             async function generateSlidesSequentially(paragraphs) {
                 slidesContainer.innerHTML = '';
                 const baseSeed = Math.floor(Math.random() * 1000000);
@@ -708,8 +718,7 @@
                     
                     const tempSlide = document.createElement('div');
                     tempSlide.className = 'slide';
-                    // 【修訂】將段落原文儲存在 data-paragraph 屬性中
-                    tempSlide.dataset.paragraph = para;
+                    tempSlide.dataset.paragraph = para; // 儲存原文以供重試
                     tempSlide.innerHTML = `
                         <div class="slide-header">
                             <span>幻燈片 ${i+1}/${paragraphs.length}</span>
@@ -727,7 +736,6 @@
                     `;
                     slidesContainer.appendChild(tempSlide);
                     
-                    // 滾動到新幻燈片的位置
                     slidesContainer.scrollTo({
                         left: tempSlide.offsetLeft - slidesContainer.offsetLeft,
                         behavior: 'smooth'
@@ -736,24 +744,25 @@
                     const slideImageContainer = tempSlide.querySelector('.slide-image');
                     const loadingText = slideImageContainer.querySelector('.loading p');
 
-                    // 1. 翻譯段落
                     const englishPara = await translateToEnglish(para);
                     
                     if (!englishPara) {
-                        slideImageContainer.innerHTML = '<p style="color: red; padding: 10px; text-align: center;">翻譯失敗，無法生成圖片。</p>';
-                        await new Promise(resolve => setTimeout(resolve, 1500)); // 等待一下讓用戶看到訊息
-                        continue; // 繼續下一個循環
+                        slideImageContainer.innerHTML = `
+                         <div class="generation-error" data-action="retry-generation" title="點擊以重新生成此圖片">
+                             <i class="fas fa-language"></i>
+                             <p>翻譯失敗，無法生成圖片。<br>請點擊此處重試。</p>
+                         </div>`;
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        continue;
                     }
                     
-                    // 2. 使用翻譯後的文本生成圖片
                     loadingText.textContent = '正在生成插圖...';
                     const prompt = generateImagePrompt(englishPara);
-                    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?token=Jeq-UCxbpvrqUEzN&model=flux&enhance=false&private=true&nologo=true&seed=${baseSeed + i}`; // 使用 i 確保初始圖片不同
+                    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?token=Jeq-UCxbpvrqUEzN&model=flux&enhance=false&private=true&nologo=true&seed=${baseSeed + i}`;
                     
                     const img = new Image();
                     await new Promise((resolve) => {
                         img.onload = () => {
-                            // 【修訂】為圖片添加點擊提示
                             img.style.cursor = 'pointer';
                             img.title = '點擊以重新生成此圖片';
                             slideImageContainer.innerHTML = '';
@@ -761,14 +770,18 @@
                             resolve();
                         };
                         img.onerror = () => {
-                            slideImageContainer.innerHTML = '<p style="color: red; padding: 10px; text-align: center;">圖片生成失敗，請重試。</p>';
+                            // 【修訂】圖片生成失敗時，顯示可點擊的重試區塊
+                            slideImageContainer.innerHTML = `
+                                <div class="generation-error" data-action="retry-generation" title="點擊以重新生成此圖片">
+                                    <i class="fas fa-image-slash"></i>
+                                    <p>圖片生成失敗。<br>請點擊此處重試。</p>
+                                </div>`;
                             resolve(); // 即使失敗也要繼續
                         };
                         img.src = imageUrl;
                         img.alt = `第${i+1}張幻燈片插圖`;
                     });
                     
-                    // 為避免API請求過快，增加延遲
                     await new Promise(resolve => setTimeout(resolve, 500));
                 }
                 
@@ -780,63 +793,70 @@
                 slidesContainer.scrollTo({ left: 0, behavior: 'smooth' });
             }
             
-            // 【新增】點擊圖片重新生成的功能
+            // 【修訂】將重新生成邏輯封裝成一個獨立函數
+            async function regenerateImageForSlide(slideElement) {
+                const imageContainer = slideElement.querySelector('.slide-image');
+                const originalParagraph = slideElement.dataset.paragraph;
+
+                if (!originalParagraph) {
+                    showNotification('找不到原始文本，無法重新生成。', true);
+                    return;
+                }
+
+                imageContainer.innerHTML = `
+                    <div class="loading" style="padding: 20px;">
+                        <div class="spinner" style="width: 40px; height: 40px; border-width: 4px;"></div>
+                        <p style="font-size: 14px; margin-top: 10px;">翻譯並生成新圖片中...</p>
+                    </div>`;
+
+                try {
+                    const englishPara = await translateToEnglish(originalParagraph);
+                    if (!englishPara) {
+                        throw new Error('翻譯失敗');
+                    }
+
+                    const prompt = generateImagePrompt(englishPara);
+                    const newSeed = Math.floor(Math.random() * 10000000);
+                    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?token=Jeq-UCxbpvrqUEzN&model=flux&enhance=false&private=true&nologo=true&seed=${newSeed}`;
+
+                    const img = new Image();
+                    await new Promise((resolve, reject) => {
+                        img.onload = () => {
+                            img.style.cursor = 'pointer';
+                            img.title = '點擊以重新生成此圖片';
+                            imageContainer.innerHTML = '';
+                            imageContainer.appendChild(img);
+                            resolve();
+                        };
+                        img.onerror = () => reject(new Error('圖片生成失敗'));
+                        img.src = imageUrl;
+                        img.alt = slideElement.querySelector('.slide-header span')?.textContent || '重新生成的插圖';
+                    });
+                    showNotification('圖片已成功重新生成！');
+                } catch (error) {
+                    const errorMessage = error.message || '未知錯誤';
+                    // 【修訂】重新生成失敗時，也要顯示可點擊的重試區塊
+                    imageContainer.innerHTML = `
+                        <div class="generation-error" data-action="retry-generation" title="點擊以重新生成此圖片">
+                            <i class="fas fa-sync-alt"></i>
+                            <p>重新生成失敗: ${errorMessage}。<br>請點擊此處重試。</p>
+                        </div>`;
+                    showNotification(`重新生成失敗：${errorMessage}`, true);
+                }
+            }
+
+            // 【修訂】統一的點擊事件監聽器，處理圖片和失敗後的重試
             slidesContainer.addEventListener('click', async function(event) {
-                // 檢查點擊的是否為幻燈片中的圖片
-                if (event.target.tagName === 'IMG' && event.target.closest('.slide-image')) {
-                    
-                    // 跳出確認對話框
-                    const isConfirmed = confirm('您確定要重新生成這張圖片嗎？');
+                const retryTarget = event.target.closest('[data-action="retry-generation"]');
+                const imageTarget = event.target.tagName === 'IMG' ? event.target : null;
+
+                if (retryTarget || imageTarget) {
+                    const isConfirmed = confirm('您確定要重新生成這張插圖嗎？');
                     
                     if (isConfirmed) {
                         const slideElement = event.target.closest('.slide');
-                        const imageContainer = event.target.closest('.slide-image');
-                        const originalParagraph = slideElement.dataset.paragraph;
-
-                        if (!originalParagraph) {
-                            showNotification('找不到原始文本，無法重新生成。', true);
-                            return;
-                        }
-
-                        // 1. 顯示加載狀態
-                        imageContainer.innerHTML = `
-                            <div class="loading" style="padding: 20px;">
-                                <div class="spinner" style="width: 40px; height: 40px; border-width: 4px;"></div>
-                                <p style="font-size: 14px; margin-top: 10px;">翻譯並生成新圖片中...</p>
-                            </div>`;
-
-                        try {
-                            // 2. 重新翻譯
-                            const englishPara = await translateToEnglish(originalParagraph);
-                            if (!englishPara) {
-                                throw new Error('翻譯失敗');
-                            }
-
-                            // 3. 用新的隨機 seed 生成新圖片
-                            const prompt = generateImagePrompt(englishPara);
-                            const newSeed = Math.floor(Math.random() * 10000000); // 產生新的隨機種子
-                            const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?token=Jeq-UCxbpvrqUEzN&model=flux&enhance=false&private=true&nologo=true&seed=${newSeed}`;
-
-                            // 4. 加載並顯示新圖片
-                            const img = new Image();
-                            await new Promise((resolve, reject) => {
-                                img.onload = () => {
-                                    img.style.cursor = 'pointer';
-                                    img.title = '點擊以重新生成此圖片';
-                                    imageContainer.innerHTML = '';
-                                    imageContainer.appendChild(img);
-                                    resolve();
-                                };
-                                img.onerror = () => reject(new Error('圖片生成失敗'));
-                                
-                                img.src = imageUrl;
-                                img.alt = event.target.alt; // 沿用舊的 alt
-                            });
-                            showNotification('圖片已成功重新生成！');
-                        } catch (error) {
-                            const errorMessage = error.message || '未知錯誤';
-                            imageContainer.innerHTML = `<p style="color: red; padding: 10px; text-align: center;">重新生成失敗：${errorMessage}</p>`;
-                            showNotification(`重新生成失敗：${errorMessage}`, true);
+                        if (slideElement) {
+                            await regenerateImageForSlide(slideElement);
                         }
                     }
                 }
@@ -845,7 +865,7 @@
             // 幻燈片導航
             prevSlideBtn.addEventListener('click', function() {
                 const slideWidth = slidesContainer.querySelector('.slide')?.offsetWidth || 0;
-                const scrollAmount = slidesContainer.scrollLeft - (slideWidth + 30); // 30是gap
+                const scrollAmount = slidesContainer.scrollLeft - (slideWidth + 30);
                 slidesContainer.scrollTo({
                     left: scrollAmount < 0 ? 0 : scrollAmount,
                     behavior: 'smooth'
@@ -854,7 +874,7 @@
             
             nextSlideBtn.addEventListener('click', function() {
                 const slideWidth = slidesContainer.querySelector('.slide')?.offsetWidth || 0;
-                const scrollAmount = slidesContainer.scrollLeft + (slideWidth + 30); // 30是gap
+                const scrollAmount = slidesContainer.scrollLeft + (slideWidth + 30);
                 slidesContainer.scrollTo({
                     left: scrollAmount,
                     behavior: 'smooth'
