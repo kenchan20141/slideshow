@@ -13,10 +13,6 @@
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- html2canvas and JSZip Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
     <style>
         /* --- Base and Font Setup --- */
         * {
@@ -26,12 +22,13 @@
         }
         
         body {
+            /* Correctly set Noto Serif TC as the primary font */
             font-family: 'Noto Serif TC', serif;
             background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
             min-height: 100vh;
             padding: 20px;
             color: #2d3748;
-            overflow-x: hidden;
+            overflow-x: hidden; /* Prevent horizontal scroll on body */
         }
         
         .container {
@@ -122,6 +119,7 @@
             resize: vertical;
             transition: all 0.3s;
             background: white;
+            /* Ensure textarea uses the correct font */
             font-family: 'Noto Serif TC', serif;
         }
         
@@ -136,6 +134,7 @@
             color: #718096;
             font-size: 14px;
             font-weight: 500;
+            /* Use a sans-serif font for UI clarity */
             font-family: 'Segoe UI', sans-serif;
         }
         
@@ -157,6 +156,7 @@
             align-items: center;
             gap: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            /* Use a clear, readable sans-serif font for buttons */
             font-family: 'Segoe UI', sans-serif;
             font-weight: 600;
         }
@@ -197,40 +197,13 @@
             align-items: center;
             margin-bottom: 25px;
         }
-
-        #download-all-btn {
-            background: #38a169;
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            font-size: 20px;
-            border: none;
-        }
-        #download-all-btn:hover {
-            background: #2f855a;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(56, 161, 105, 0.35);
-        }
-        #download-all-btn:disabled {
-            background: #a0aec0;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
         
         .slides-container {
             display: flex;
             overflow-x: auto;
             gap: 30px;
-            padding: 20px;
-            margin: 0 -20px;
+            padding: 20px; /* Increased padding to show overflow */
+            margin: 0 -20px; /* Negative margin to compensate padding */
             scroll-behavior: smooth;
             min-height: 550px;
             align-items: center;
@@ -243,8 +216,7 @@
         .slides-container::-webkit-scrollbar-thumb { background: #3182ce; border-radius: 10px; }
         
         .slide {
-            position: relative;
-            flex: 0 0 400px;
+            flex: 0 0 400px; /* Do not shrink, do not grow, base width 400px */
             width: 400px;
             background: white;
             border-radius: 16px;
@@ -273,31 +245,8 @@
             font-size: 18px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
             font-family: 'Segoe UI', sans-serif;
             font-weight: 600;
-        }
-        
-        .download-slide-btn {
-            background: transparent;
-            border: none;
-            color: rgba(255, 255, 255, 0.8);
-            cursor: pointer;
-            font-size: 20px;
-            padding: 0 15px;
-            transition: all 0.2s ease;
-        }
-        .download-slide-btn:hover {
-            color: white;
-            transform: scale(1.25);
-        }
-
-        /* ---修訂---: 這個CSS類別可以在擷取時隱藏不需要的UI元素，例如下載按鈕本身 */
-        .is-capturing .download-slide-btn,
-        .is-capturing .slide:hover {
-            display: none !important;
-            transform: none !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important;
         }
         
         .slide-image {
@@ -308,10 +257,9 @@
             align-items: center;
             justify-content: center;
             border-bottom: 1px solid #e2e8f0;
-            position: relative;
-            text-align: center;
+            position: relative; /* Needed for positioning regeneration UI */
+            text-align: center; /* Center content like error messages */
             padding: 20px;
-            cursor: pointer;
         }
         
         .slide-image img {
@@ -319,10 +267,10 @@
             height: 100%;
             object-fit: cover;
             transition: opacity 0.3s;
-            padding: 0;
-            pointer-events: none;
+            padding: 0; /* Reset padding for the image itself */
         }
         
+        /* 【新增】圖片生成失敗時的重試樣式 */
         .generation-error {
             display: flex;
             flex-direction: column;
@@ -337,9 +285,17 @@
             width: 100%;
             transition: background-color 0.3s;
         }
-        .generation-error:hover { background-color: #fed7d7; }
-        .generation-error i { font-size: 3rem; }
-        .generation-error p { font-weight: 600; font-size: 1rem; line-height: 1.5; }
+        .generation-error:hover {
+            background-color: #fed7d7;
+        }
+        .generation-error i {
+            font-size: 3rem;
+        }
+        .generation-error p {
+            font-weight: 600;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
 
         .slide-text {
             padding: 20px;
@@ -358,7 +314,7 @@
             text-align: center;
             color: #718096;
             padding: 30px;
-            flex-grow: 1;
+            flex-grow: 1; /* Make it fill the container */
         }
         
         .placeholder i { font-size: 70px; margin-bottom: 25px; color: #cbd5e0; opacity: 0.7; }
@@ -461,32 +417,82 @@
         }
         
         /* --- Responsive Design --- */
+        
+        /* For Tablets (and large mobile) */
         @media (max-width: 768px) {
-            body { padding: 15px; }
-            .app-container { gap: 20px; }
-            h1 { font-size: 2.2rem; }
-            .subtitle { font-size: 1.1rem; }
-            .input-section, .slides-section { padding: 25px; }
-            .slide { flex-basis: 340px; width: 340px; }
-            .slide-image { height: 340px; }
-            .slides-container { min-height: 520px; }
-            #download-all-btn { width: 45px; height: 45px; font-size: 18px; }
-            h2 { font-size: 1.6rem; }
+            body {
+                padding: 15px;
+            }
+            .app-container {
+                gap: 20px;
+            }
+            h1 {
+                font-size: 2.2rem;
+            }
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            .input-section, .slides-section {
+                padding: 25px;
+            }
+            .slide {
+                flex-basis: 340px;
+                width: 340px;
+            }
+            .slide-image {
+                height: 340px;
+            }
+            .slides-container {
+                min-height: 520px;
+            }
         }
         
+        /* For Mobile phones */
         @media (max-width: 480px) {
-            body { padding: 10px; }
-            h1 { font-size: 1.8rem; }
-            .subtitle { font-size: 1rem; }
-            .input-section, .slides-section { padding: 20px; }
-            .controls { flex-direction: column; }
-            .btn { width: 100%; justify-content: center; }
-            .slide { flex-basis: 85vw; width: 85vw; max-width: 320px; }
-            .slide-image { height: 85vw; max-height: 320px; }
-            .slide-header { font-size: 16px; padding: 12px 15px; }
-            .slides-container { min-height: 480px; padding: 20px 15px; margin: 0 -15px; }
-            #download-all-btn { width: 40px; height: 40px; font-size: 16px; }
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            .subtitle {
+                font-size: 1rem;
+            }
+            .input-section, .slides-section {
+                padding: 20px;
+            }
+            .controls {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            /* Responsive slide sizing */
+            .slide {
+                flex-basis: 85vw; /* Set base width relative to viewport */
+                width: 85vw;
+                max-width: 320px; /* Prevent it from getting too large */
+            }
+            
+            .slide-image {
+                height: 85vw;
+                max-height: 320px;
+            }
+
+            .slide-header {
+                font-size: 16px;
+                padding: 12px 15px;
+            }
+
+            .slides-container {
+                min-height: 480px;
+                padding: 20px 15px;
+                margin: 0 -15px;
+            }
         }
+
     </style>
 </head>
 <body>
@@ -525,9 +531,6 @@
                         <i class="fas fa-images"></i>
                         <h2>幻燈片展示</h2>
                     </div>
-                    <button id="download-all-btn" title="打包下載全部" disabled>
-                        <i class="fas fa-file-archive"></i>
-                    </button>
                 </div>
                 
                 <div class="slides-container" id="slides-container">
@@ -560,7 +563,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // DOM Elements
+            // 獲取DOM元素
             const articleInput = document.getElementById('article-input');
             const charCount = document.getElementById('char-count');
             const generateBtn = document.getElementById('generate-btn');
@@ -571,39 +574,49 @@
             const notification = document.getElementById('notification');
             const progressContainer = document.getElementById('progress-container');
             const progressBar = document.getElementById('progress-bar');
-            const downloadAllBtn = document.getElementById('download-all-btn');
             
-            // Character Count
-            articleInput.addEventListener('input', () => {
-                charCount.textContent = articleInput.value.length;
+            // 字數統計
+            articleInput.addEventListener('input', function() {
+                const text = articleInput.value;
+                charCount.textContent = text.length;
             });
             
-            // Show Notification
-            function showNotification(message, isError = false, duration = 3500) {
-                const iconClass = isError ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
-                notification.innerHTML = `<i class="${iconClass}"></i> <span>${message}</span>`;
+            // 顯示通知
+            function showNotification(message, isError = false) {
+                const icon = isError ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
+                notification.innerHTML = `<i class="${icon}"></i> <span>${message}</span>`;
                 notification.className = 'notification';
-                if (isError) notification.classList.add('error');
+                if (isError) {
+                    notification.classList.add('error');
+                }
                 notification.classList.add('show');
-                setTimeout(() => notification.classList.remove('show'), duration);
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3500);
             }
             
-            // Reset Content
-            resetBtn.addEventListener('click', () => {
+            // 重置內容
+            resetBtn.addEventListener('click', function() {
                 articleInput.value = '';
                 charCount.textContent = '0';
-                slidesContainer.innerHTML = `<div class="placeholder"><i class="fas fa-scroll"></i><p>輸入文章並點擊「生成幻燈片」按鈕後，這裡將顯示帶有AI生成插圖的幻燈片</p></div>`;
+                slidesContainer.innerHTML = `
+                    <div class="placeholder">
+                        <i class="fas fa-scroll"></i>
+                        <p>輸入文章並點擊「生成幻燈片」按鈕後，這裡將顯示帶有AI生成插圖的幻燈片</p>
+                    </div>
+                `;
                 prevSlideBtn.disabled = true;
                 nextSlideBtn.disabled = true;
-                downloadAllBtn.disabled = true;
                 progressContainer.style.display = 'none';
                 progressBar.style.width = '0%';
                 showNotification('已重置所有內容！');
             });
             
-            // Generate Slides
-            generateBtn.addEventListener('click', async () => {
+            // 生成幻燈片
+            generateBtn.addEventListener('click', async function() {
                 const article = articleInput.value.trim();
+                
                 if (!article) {
                     showNotification('請輸入文章內容！', true);
                     return;
@@ -611,9 +624,14 @@
                 
                 generateBtn.disabled = true;
                 resetBtn.disabled = true;
-                downloadAllBtn.disabled = true;
                 
-                slidesContainer.innerHTML = `<div class="loading"><div class="spinner"></div><p>正在生成幻燈片，請稍候...這可能需要一些時間</p></div>`;
+                slidesContainer.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>正在生成幻燈片，請稍候...這可能需要一些時間</p>
+                    </div>
+                `;
+                
                 progressContainer.style.display = 'block';
                 progressBar.style.width = '0%';
                 
@@ -625,7 +643,11 @@
                 } catch (error) {
                     showNotification('生成過程中發生錯誤，請重試', true);
                     console.error('生成錯誤:', error);
-                    slidesContainer.innerHTML = `<div class="placeholder"><i class="fas fa-exclamation-triangle"></i><p>抱歉，生成時發生未知錯誤。請檢查網路連線或稍後再試。</p></div>`;
+                    slidesContainer.innerHTML = `
+                    <div class="placeholder">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>抱歉，生成時發生未知錯誤。請檢查網路連線或稍後再試。</p>
+                    </div>`;
                 } finally {
                     generateBtn.disabled = false;
                     resetBtn.disabled = false;
@@ -636,27 +658,44 @@
                 const sentences = article.split(/(?<=[。！？；])/g);
                 const paragraphs = [];
                 let currentParagraph = '';
+                
                 sentences.forEach(sentence => {
                     if ((currentParagraph + sentence).length <= 100) {
                         currentParagraph += sentence;
                     } else {
-                        if (currentParagraph.trim()) paragraphs.push(currentParagraph.trim());
+                        if (currentParagraph.trim()) {
+                            paragraphs.push(currentParagraph.trim());
+                        }
                         currentParagraph = sentence;
                     }
                 });
-                if (currentParagraph.trim()) paragraphs.push(currentParagraph.trim());
+                
+                if (currentParagraph.trim()) {
+                    paragraphs.push(currentParagraph.trim());
+                }
+                
                 return paragraphs;
             }
 
             async function translateToEnglish(textToTranslate) {
                 const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=zh-TW|en`;
+
                 try {
                     const response = await fetch(apiUrl);
-                    if (!response.ok) throw new Error(`Translation API failed`);
+                    if (!response.ok) {
+                        throw new Error(`Translation API failed with status ${response.status}`);
+                    }
                     const data = await response.json();
-                    if (data.responseStatus !== 200) throw new Error(`MyMemory API error`);
-                    if (data.responseData?.translatedText) return data.responseData.translatedText;
-                    throw new Error('No translation found');
+                    
+                    if (data.responseStatus !== 200) {
+                        throw new Error(`MyMemory API error: ${data.responseDetails}`);
+                    }
+
+                    if (data.responseData && data.responseData.translatedText) {
+                        return data.responseData.translatedText;
+                    } else {
+                        throw new Error('Translated text not found in API response.');
+                    }
                 } catch (error) {
                     console.error('Translation error:', error);
                     return null;
@@ -673,40 +712,47 @@
                 
                 for (let i = 0; i < paragraphs.length; i++) {
                     const para = paragraphs[i];
-                    progressBar.style.width = `${Math.floor(((i + 1) / paragraphs.length) * 100)}%`;
                     
-                    const slideIndex = i + 1;
+                    const progress = Math.floor((i / paragraphs.length) * 100);
+                    progressBar.style.width = `${progress}%`;
+                    
                     const tempSlide = document.createElement('div');
                     tempSlide.className = 'slide';
-                    tempSlide.dataset.paragraph = para;
-                    tempSlide.dataset.index = String(slideIndex); // 使用 String 以便後續 padStart
-                    
+                    tempSlide.dataset.paragraph = para; // 儲存原文以供重試
                     tempSlide.innerHTML = `
                         <div class="slide-header">
-                            <span>幻燈片 ${slideIndex}/${paragraphs.length}</span>
-                            <button class="download-slide-btn" title="下載此張卡片 (PNG)">
-                                <i class="fas fa-download"></i>
-                            </button>
+                            <span>幻燈片 ${i+1}/${paragraphs.length}</span>
                             <span>${para.length} 字</span>
                         </div>
-                        <div class="slide-image" title="點擊以重新生成此圖片">
-                            <div class="image-content-wrapper">
-                                <div class="loading">
-                                    <div class="spinner"></div><p>正在翻譯文字...</p>
-                                </div>
+                        <div class="slide-image">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>正在翻譯文字...</p>
                             </div>
                         </div>
-                        <div class="slide-text"><p>${para}</p></div>
+                        <div class="slide-text">
+                            <p>${para}</p>
+                        </div>
                     `;
                     slidesContainer.appendChild(tempSlide);
-                    slidesContainer.scrollTo({ left: tempSlide.offsetLeft - slidesContainer.offsetLeft, behavior: 'smooth' });
                     
-                    const imageContentWrapper = tempSlide.querySelector('.image-content-wrapper');
-                    const loadingText = imageContentWrapper.querySelector('.loading p');
+                    slidesContainer.scrollTo({
+                        left: tempSlide.offsetLeft - slidesContainer.offsetLeft,
+                        behavior: 'smooth'
+                    });
+                    
+                    const slideImageContainer = tempSlide.querySelector('.slide-image');
+                    const loadingText = slideImageContainer.querySelector('.loading p');
 
                     const englishPara = await translateToEnglish(para);
+                    
                     if (!englishPara) {
-                        imageContentWrapper.innerHTML = `<div class="generation-error"><i class="fas fa-language"></i><p>翻譯失敗，無法生成圖片。<br>請點擊此處重試。</p></div>`;
+                        slideImageContainer.innerHTML = `
+                         <div class="generation-error" data-action="retry-generation" title="點擊以重新生成此圖片">
+                             <i class="fas fa-language"></i>
+                             <p>翻譯失敗，無法生成圖片。<br>請點擊此處重試。</p>
+                         </div>`;
+                        await new Promise(resolve => setTimeout(resolve, 500));
                         continue;
                     }
                     
@@ -715,52 +761,71 @@
                     const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?token=Jeq-UCxbpvrqUEzN&model=flux&enhance=false&private=true&nologo=true&seed=${baseSeed + i}`;
                     
                     const img = new Image();
-                    img.crossOrigin = 'anonymous'; // **重要**：為跨域圖片設定此屬性
-                    await new Promise(resolve => {
+                    await new Promise((resolve) => {
                         img.onload = () => {
-                            imageContentWrapper.innerHTML = '';
-                            imageContentWrapper.appendChild(img);
+                            img.style.cursor = 'pointer';
+                            img.title = '點擊以重新生成此圖片';
+                            slideImageContainer.innerHTML = '';
+                            slideImageContainer.appendChild(img);
                             resolve();
                         };
                         img.onerror = () => {
-                            imageContentWrapper.innerHTML = `<div class="generation-error"><i class="fas fa-image-slash"></i><p>圖片生成失敗。<br>請點擊此處重試。</p></div>`;
-                            resolve();
+                            // 【修訂】圖片生成失敗時，顯示可點擊的重試區塊
+                            slideImageContainer.innerHTML = `
+                                <div class="generation-error" data-action="retry-generation" title="點擊以重新生成此圖片">
+                                    <i class="fas fa-image-slash"></i>
+                                    <p>圖片生成失敗。<br>請點擊此處重試。</p>
+                                </div>`;
+                            resolve(); // 即使失敗也要繼續
                         };
                         img.src = imageUrl;
-                        img.alt = `第${slideIndex}張幻燈片插圖`;
+                        img.alt = `第${i+1}張幻燈片插圖`;
                     });
+                    
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 }
+                
+                progressBar.style.width = '100%';
                 
                 prevSlideBtn.disabled = paragraphs.length === 0;
                 nextSlideBtn.disabled = paragraphs.length === 0;
-                downloadAllBtn.disabled = paragraphs.length === 0;
+                
                 slidesContainer.scrollTo({ left: 0, behavior: 'smooth' });
             }
             
+            // 【修訂】將重新生成邏輯封裝成一個獨立函數
             async function regenerateImageForSlide(slideElement) {
-                const imageContentWrapper = slideElement.querySelector('.image-content-wrapper');
+                const imageContainer = slideElement.querySelector('.slide-image');
                 const originalParagraph = slideElement.dataset.paragraph;
+
                 if (!originalParagraph) {
                     showNotification('找不到原始文本，無法重新生成。', true);
                     return;
                 }
 
-                imageContentWrapper.innerHTML = `<div class="loading" style="padding: 20px;"><div class="spinner" style="width: 40px; height: 40px; border-width: 4px;"></div><p style="font-size: 14px; margin-top: 10px;">翻譯並生成新圖片中...</p></div>`;
+                imageContainer.innerHTML = `
+                    <div class="loading" style="padding: 20px;">
+                        <div class="spinner" style="width: 40px; height: 40px; border-width: 4px;"></div>
+                        <p style="font-size: 14px; margin-top: 10px;">翻譯並生成新圖片中...</p>
+                    </div>`;
 
                 try {
                     const englishPara = await translateToEnglish(originalParagraph);
-                    if (!englishPara) throw new Error('翻譯失敗');
+                    if (!englishPara) {
+                        throw new Error('翻譯失敗');
+                    }
 
                     const prompt = generateImagePrompt(englishPara);
                     const newSeed = Math.floor(Math.random() * 10000000);
                     const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?token=Jeq-UCxbpvrqUEzN&model=flux&enhance=false&private=true&nologo=true&seed=${newSeed}`;
 
                     const img = new Image();
-                    img.crossOrigin = 'anonymous'; // **重要**：為跨域圖片設定此屬性
                     await new Promise((resolve, reject) => {
                         img.onload = () => {
-                            imageContentWrapper.innerHTML = '';
-                            imageContentWrapper.appendChild(img);
+                            img.style.cursor = 'pointer';
+                            img.title = '點擊以重新生成此圖片';
+                            imageContainer.innerHTML = '';
+                            imageContainer.appendChild(img);
                             resolve();
                         };
                         img.onerror = () => reject(new Error('圖片生成失敗'));
@@ -770,176 +835,56 @@
                     showNotification('圖片已成功重新生成！');
                 } catch (error) {
                     const errorMessage = error.message || '未知錯誤';
-                    imageContentWrapper.innerHTML = `<div class="generation-error"><i class="fas fa-sync-alt"></i><p>重新生成失敗: ${errorMessage}。<br>請點擊此處重試。</p></div>`;
+                    // 【修訂】重新生成失敗時，也要顯示可點擊的重試區塊
+                    imageContainer.innerHTML = `
+                        <div class="generation-error" data-action="retry-generation" title="點擊以重新生成此圖片">
+                            <i class="fas fa-sync-alt"></i>
+                            <p>重新生成失敗: ${errorMessage}。<br>請點擊此處重試。</p>
+                        </div>`;
                     showNotification(`重新生成失敗：${errorMessage}`, true);
                 }
             }
-            
-            // --- 修訂後的程式碼區塊 START ---
 
-            /**
-             * 獲取 html2canvas 的共用設定
-             * @returns {object} - 設定物件
-             */
-            const getCanvasOptions = () => ({
-                useCORS: true,       // 允許擷取跨來源的圖片
-                allowTaint: true,    // 允許汙染畫布，搭配 useCORS
-                logging: false,      // 關閉控制台日誌
-                scale: 4,            // 提升 4 倍解析度以獲得更清晰的圖片
-                // **關鍵修復點 1**: 明確指定背景為白色。
-                // 這是第一道防線，可以解決大部分情況下的透明度問題。
-                backgroundColor: '#ffffff'
-            });
+            // 【修訂】統一的點擊事件監聽器，處理圖片和失敗後的重試
+            slidesContainer.addEventListener('click', async function(event) {
+                const retryTarget = event.target.closest('[data-action="retry-generation"]');
+                const imageTarget = event.target.tagName === 'IMG' ? event.target : null;
 
-            /**
-             * 下載單張幻燈片，採用「畫布二次合成」技術確保無透明度問題
-             * @param {HTMLElement} slideElement - 要下載的幻燈片 DOM 元素
-             */
-            async function downloadSlide(slideElement) {
-                const slideIndex = slideElement.dataset.index.padStart(2, '0');
-                const fileName = `幻燈片_${slideIndex}.png`;
-                showNotification(`正在生成高品質圖片 ${fileName}...`, false, 4000);
-                
-                // 加上一個特定 class，可以在擷取時透過 CSS 隱藏下載按鈕等不需要的元素
-                slideElement.classList.add('is-capturing');
-
-                // 等待下一幀渲染，確保樣式已應用
-                await new Promise(resolve => requestAnimationFrame(resolve));
-
-                try {
-                    // **關鍵修復點 2**: 執行畫布二次合成，這是最可靠的解決方案
-
-                    // 第 1 步: 使用 html2canvas 進行初次擷取
-                    const initialCanvas = await html2canvas(slideElement, getCanvasOptions());
-
-                    // 第 2 步: 建立一個新的、最終要輸出的畫布
-                    const finalCanvas = document.createElement('canvas');
-                    finalCanvas.width = initialCanvas.width;
-                    finalCanvas.height = initialCanvas.height;
-                    const ctx = finalCanvas.getContext('2d');
+                if (retryTarget || imageTarget) {
+                    const isConfirmed = confirm('您確定要重新生成這張插圖嗎？');
                     
-                    // 第 3 步: 將新畫布的背景填充為「不透明」的純白色
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-                    
-                    // 第 4 步: 將初次擷取的結果 (initialCanvas) 繪製到這個純白背景的畫布上
-                    // 這個操作會將所有半透明像素與白色背景合成，從而消除透明度
-                    ctx.drawImage(initialCanvas, 0, 0);
-
-                    // 第 5 步: 從處理過的 finalCanvas 匯出圖片，這個版本將不再有失真問題
-                    const imageURL = finalCanvas.toDataURL('image/png', 1.0); // 1.0 代表最高品質
-                    const link = document.createElement('a');
-                    link.href = imageURL;
-                    link.download = fileName;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    showNotification(`${fileName} 已開始下載！`);
-
-                } catch (error) {
-                    console.error('下載失敗:', error);
-                    showNotification('下載失敗，請檢查主控台錯誤訊息。', true);
-                } finally {
-                    // 完成後移除 class，讓按鈕等元素恢復正常顯示
-                    slideElement.classList.remove('is-capturing');
-                }
-            }
-
-            /**
-             * 打包並下載所有幻燈片，同樣採用「畫布二次合成」技術
-             */
-            downloadAllBtn.addEventListener('click', async function() {
-                const slides = Array.from(slidesContainer.querySelectorAll('.slide'));
-                if (slides.length === 0) return;
-
-                this.disabled = true;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                showNotification('正在打包所有高品質卡片，請稍候...', false, 60000);
-
-                try {
-                    const zip = new JSZip();
-                    const canvasOptions = getCanvasOptions();
-
-                    for (const slide of slides) {
-                        const slideIndex = slide.dataset.index.padStart(2, '0');
-                        const fileName = `幻燈片_${slideIndex}.png`;
-                        
-                        slide.classList.add('is-capturing');
-                        await new Promise(resolve => requestAnimationFrame(resolve));
-
-                        // --- 為每一張圖片執行同樣的「畫布二次合成」---
-                        const initialCanvas = await html2canvas(slide, canvasOptions);
-                        const finalCanvas = document.createElement('canvas');
-                        finalCanvas.width = initialCanvas.width;
-                        finalCanvas.height = initialCanvas.height;
-                        const ctx = finalCanvas.getContext('2d');
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-                        ctx.drawImage(initialCanvas, 0, 0);
-                        // --- 合成結束 ---
-
-                        // 從處理好的 finalCanvas 產生 Blob 物件以加入 ZIP
-                        const imageData = await new Promise(resolve => finalCanvas.toBlob(resolve, 'image/png'));
-                        zip.file(fileName, imageData);
-                        
-                        slide.classList.remove('is-capturing');
-                    }
-
-                    const content = await zip.generateAsync({ type: "blob" });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(content);
-                    link.download = '所有幻燈片.zip';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    showNotification('已成功打包並開始下載！');
-
-                } catch (error) {
-                    console.error('打包下載失敗:', error);
-                    showNotification('打包下載失敗，請檢查主控台錯誤訊息。', true);
-                    // 確保即使出錯也移除所有 'is-capturing' class
-                    slides.forEach(s => s.classList.remove('is-capturing'));
-                } finally {
-                    this.disabled = false;
-                    this.innerHTML = '<i class="fas fa-file-archive"></i>';
-                }
-            });
-
-            // --- 修訂後的程式碼區塊 END ---
-            
-            // Event Listener for slide interactions
-            slidesContainer.addEventListener('click', async (event) => {
-                const slideElement = event.target.closest('.slide');
-                if (!slideElement) return;
-
-                if (event.target.closest('.download-slide-btn')) {
-                    await downloadSlide(slideElement);
-                    return;
-                }
-                
-                if (event.target.closest('.slide-image')) {
-                    if (confirm('您確定要重新生成這張插圖嗎？這將會產生一張全新的圖片。')) {
-                        await regenerateImageForSlide(slideElement);
+                    if (isConfirmed) {
+                        const slideElement = event.target.closest('.slide');
+                        if (slideElement) {
+                            await regenerateImageForSlide(slideElement);
+                        }
                     }
                 }
             });
             
-            // Slide Navigation
-            prevSlideBtn.addEventListener('click', () => {
+            // 幻燈片導航
+            prevSlideBtn.addEventListener('click', function() {
                 const slideWidth = slidesContainer.querySelector('.slide')?.offsetWidth || 0;
-                slidesContainer.scrollBy({ left: -(slideWidth + 30), behavior: 'smooth' });
+                const scrollAmount = slidesContainer.scrollLeft - (slideWidth + 30);
+                slidesContainer.scrollTo({
+                    left: scrollAmount < 0 ? 0 : scrollAmount,
+                    behavior: 'smooth'
+                });
             });
             
-            nextSlideBtn.addEventListener('click', () => {
+            nextSlideBtn.addEventListener('click', function() {
                 const slideWidth = slidesContainer.querySelector('.slide')?.offsetWidth || 0;
-                slidesContainer.scrollBy({ left: slideWidth + 30, behavior: 'smooth' });
+                const scrollAmount = slidesContainer.scrollLeft + (slideWidth + 30);
+                slidesContainer.scrollTo({
+                    left: scrollAmount,
+                    behavior: 'smooth'
+                });
             });
             
-            // Initial button states
+            // 初始禁用導航按鈕
             prevSlideBtn.disabled = true;
             nextSlideBtn.disabled = true;
-            downloadAllBtn.disabled = true;
         });
     </script>
 </body>
-</html>```
+</html>
