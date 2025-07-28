@@ -679,29 +679,37 @@
             }
 
             async function translateToEnglish(textToTranslate) {
-                const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=zh-TW|en`;
+    // 【重要】請將此處的信箱替換為您自己的有效電子郵件地址
+    const myEmail = 'kenchan20151@gmail.com'; 
 
-                try {
-                    const response = await fetch(apiUrl);
-                    if (!response.ok) {
-                        throw new Error(`Translation API failed with status ${response.status}`);
-                    }
-                    const data = await response.json();
-                    
-                    if (data.responseStatus !== 200) {
-                        throw new Error(`MyMemory API error: ${data.responseDetails}`);
-                    }
+    const apiUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=zh-TW|en&de=${myEmail}`;
 
-                    if (data.responseData && data.responseData.translatedText) {
-                        return data.responseData.translatedText;
-                    } else {
-                        throw new Error('Translated text not found in API response.');
-                    }
-                } catch (error) {
-                    console.error('Translation error:', error);
-                    return null;
-                }
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            throw new Error(`Translation API failed with status ${response.status}`);
+        }
+        const data = await response.json();
+
+        if (data.responseStatus !== 200) {
+            // MyMemory 在額度用盡時的回應細節
+            if (data.responseDetails && data.responseDetails.includes("daily limit")) {
+                 console.error('MyMemory API daily limit exceeded for this IP or email.');
+                 throw new Error(`MyMemory API error: Daily limit exceeded.`);
             }
+            throw new Error(`MyMemory API error: ${data.responseDetails}`);
+        }
+
+        if (data.responseData && data.responseData.translatedText) {
+            return data.responseData.translatedText;
+        } else {
+            throw new Error('Translated text not found in API response.');
+        }
+    } catch (error) {
+        console.error('Translation error:', error);
+        return null; // 保持錯誤時返回 null 的行為
+    }
+}
             
             function generateImagePrompt(englishParagraph) {
                 return `Illustration of: "${englishParagraph}". Rendered in a classic manga style with an emphasis on simplicity. Use only black and white, with clean, uniform, and minimalist line art. The overall feel should be a high-contrast, clear monochrome comic panel or sketch. No text is included`;
