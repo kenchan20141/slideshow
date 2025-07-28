@@ -656,27 +656,44 @@
             });
             
             function splitArticleIntoParagraphs(article) {
-                const sentences = article.split(/(?<=[。！？；])/g);
-                const paragraphs = [];
-                let currentParagraph = '';
-                
-                sentences.forEach(sentence => {
-                    if ((currentParagraph + sentence).length <= 100) {
-                        currentParagraph += sentence;
-                    } else {
-                        if (currentParagraph.trim()) {
-                            paragraphs.push(currentParagraph.trim());
-                        }
-                        currentParagraph = sentence;
-                    }
-                });
-                
-                if (currentParagraph.trim()) {
-                    paragraphs.push(currentParagraph.trim());
-                }
-                
-                return paragraphs;
+    const sentences = article.split(/(?<=[。！？；])/g);
+    const paragraphs = [];
+    let currentParagraph = '';
+
+    sentences.forEach(sentence => {
+        if ((currentParagraph + sentence).length <= 100) {
+            currentParagraph += sentence;
+        } else {
+            if (currentParagraph.trim()) {
+                paragraphs.push(currentParagraph.trim());
             }
+            currentParagraph = sentence;
+        }
+    });
+
+    if (currentParagraph.trim()) {
+        paragraphs.push(currentParagraph.trim());
+    }
+
+    // 【新增】後處理段落，修正開頭的標點符號
+    // 定義不應出現在段落開頭的標點符號列表
+    const leadingPunctuationsToMove = ['」', '』', '”', '’', '）', '】', '〕', '．', '，', '、', '：', '；'];
+
+    for (let i = 1; i < paragraphs.length; i++) {
+        // 如果當前段落不為空，且其第一個字元在我們的修正列表中
+        if (paragraphs[i] && leadingPunctuationsToMove.includes(paragraphs[i][0])) {
+            
+            // 1. 將這個標點符號加到前一個段落的結尾
+            paragraphs[i - 1] += paragraphs[i][0];
+            
+            // 2. 從當前段落中移除這個標點符號
+            paragraphs[i] = paragraphs[i].substring(1);
+        }
+    }
+
+    // 過濾掉可能因修正而變為空字串的段落
+    return paragraphs.filter(p => p.trim() !== '');
+}
 
             async function translateToEnglish(textToTranslate) {
     // 【重要】請將此處的信箱替換為您自己的有效電子郵件地址
