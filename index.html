@@ -995,7 +995,7 @@ if (!modal || !modalTextarea || !modalSaveBtn || !modalCloseBtn || !ocrBtn) {
                     
                     loadingText.textContent = '正在生成插圖...';
                     const prompt = generateImagePrompt(englishPara);
-                    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?token=Jeq-UCxbpvrqUEzN&model=flux&enhance=false&private=true&nologo=true&seed=${baseSeed + i}`;
+                    const imageUrl = `https://gen.pollinations.ai/prompt/${encodeURIComponent(prompt)}?token=Jeq-UCxbpvrqUEzN&model=flux&enhance=false&private=true&nologo=true&seed=${baseSeed + i}`;
                     
                     const img = new Image();
                     await new Promise((resolve) => {
